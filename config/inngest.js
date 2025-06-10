@@ -68,22 +68,23 @@ export const syncUserDeletion = inngest.createFunction(
 export const createUserOrder = inngest.createFunction(
   {
     id: "create-user-order",
-    batchEvents: {
+    // Batch configuration should be inside the main config object
+    batch: {
       maxSize: 5,
       timeout: "5s",
     },
   },
-  { event: "order/created" },
+  { event: "order/created" }, // This is correct for the trigger
   async ({ events }) => {
-    const orders = events.map((event) => {
-      return {
-        userId: event.data.userId,
-        items: event.data.items,
-        amount: event.data.amount,
-        address: event.data.address,
-        date: event.data.date,
-      };
-    });
+    const orders = events.map((event) => ({
+      userId: event.data.userId,
+      items: event.data.items,
+      amount: event.data.amount,
+      address: event.data.address,
+      date: event.data.date,
+      status: "Order Placed" // Add default status
+    }));
+    
     await connectDB();
     await Order.insertMany(orders);
     return { success: true, processed: orders.length };

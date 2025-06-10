@@ -2,6 +2,7 @@ import Product from "@/models/product";
 import User from "@/models/User";
 import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { inngest } from "@/config/inngest";
 
 export async function POST(request) {
   try {
@@ -15,17 +16,17 @@ export async function POST(request) {
     const amount = await items.reduce(async (accPromise, item) => {
       const acc = await accPromise;
       const product = await Product.findById(item.product);
-      return acc + product.offerPrice * item.quantity;
-    }, Promise.resolve(0));
+      return (await acc) + product.offerPrice * item.quantity;
+    }, 0);
 
     await inngest.send({
       name: "order/created",
       data: {
         userId,
-        address,
-        items,
+        address, // This should be an ObjectId string
+        items, // Array of { product: ObjectId, quantity: Number }
         amount: amount + Math.floor(amount * 0.02),
-        date: Date.now(),
+        date: new Date(), // Send Date object instead of timestamp
       },
     });
 
