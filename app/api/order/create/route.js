@@ -13,8 +13,7 @@ export async function POST(request) {
       return NextResponse.json({ success: false, message: "Invalid Data" });
     }
 
-    const amount = await items.reduce(async (accPromise, item) => {
-      const acc = await accPromise;
+    const amount = await items.reduce(async (acc, item) => {
       const product = await Product.findById(item.product);
       return (await acc) + product.offerPrice * item.quantity;
     }, 0);
